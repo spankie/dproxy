@@ -1,13 +1,10 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"fmt"
 	"io"
 	"log"
 	"net"
-	"net/http"
 	"strings"
 	"time"
 )
@@ -64,25 +61,25 @@ func proxy(lconn net.Conn) {
 
 	defer lconn.Close()
 
-	buffer := bytes.NewBuffer(nil)
+	// buffer := bytes.NewBuffer(nil)
 	// create a reader to local connection : lconn
-	reader := bufio.NewReader(io.TeeReader(lconn, buffer))
-	req, err := http.ReadRequest(reader)
-	if err != nil {
-		log.Println("Could not get request... : ", err)
-		return
-	}
+	// reader := bufio.NewReader(io.TeeReader(lconn, buffer))
+	// req, err := http.ReadRequest(reader)
+	// if err != nil {
+	// 	log.Println("Could not get request... : ", err)
+	// 	return
+	// }
 	// intended host... might be changed to remote proxy ip address
-	host := req.Host
-	if !strings.Contains(host, ":") {
-		host = host + ":" + httpPort
-	}
-	log.Println("request Host : ", host) //" from: ", req.RemoteAddr)
+	// host := req.Host
+	// if !strings.Contains(host, ":") {
+	// 	host = host + ":" + httpPort
+	// }
+	// log.Println("request Host : ", host) //" from: ", req.RemoteAddr)
 
 	// TODO :: launch separate go routines to handle read and writing to the proxy user...
-
+	host := "google.com:80"
 	// create a connection to the remote host
-	rconn, err := net.DialTimeout("tcp", "google.com:80", timeout)
+	rconn, err := net.DialTimeout("tcp", host, timeout)
 	if err != nil {
 		log.Println("could not access :", host, "reason:", err)
 		return
