@@ -51,6 +51,7 @@ func main() {
 			// I do not want to end the program because of this...
 			continue
 		}
+		log.Println("remoteAddr: ", conn.LocalAddr())
 		// route the proxy to the remote address and back...
 		go proxy(conn)
 	}
@@ -61,27 +62,12 @@ func proxy(lconn net.Conn) {
 
 	defer lconn.Close()
 
-	// buffer := bytes.NewBuffer(nil)
-	// create a reader to local connection : lconn
-	// reader := bufio.NewReader(io.TeeReader(lconn, buffer))
-	// req, err := http.ReadRequest(reader)
-	// if err != nil {
-	// 	log.Println("Could not get request... : ", err)
-	// 	return
-	// }
-	// intended host... might be changed to remote proxy ip address
-	// host := req.Host
-	// if !strings.Contains(host, ":") {
-	// 	host = host + ":" + httpPort
-	// }
-	// log.Println("request Host : ", host) //" from: ", req.RemoteAddr)
-
 	// TODO :: launch separate go routines to handle read and writing to the proxy user...
-	host := "google.com:80"
+	host := "177.67.82.102:8080"
 	// create a connection to the remote host
 	rconn, err := net.DialTimeout("tcp", host, timeout)
 	if err != nil {
-		log.Println("could not access :", host, "reason:", err)
+		log.Println("Could not Dial ", host, "reason:", err)
 		return
 	}
 
@@ -94,7 +80,8 @@ func proxy(lconn net.Conn) {
 			w, err := io.CopyN(rconn, lconn, 8*1<<10)
 			log.Println("sent:", w)
 			if isNormalTerminationError(err) {
-				log.Println("sent: copy err : ", err)
+				// log.Println("sent: copy err : ", err)
+				log.Println("Could not send data from local connection to remote server.")
 				// connDone <- 1
 				return
 			}
@@ -105,7 +92,7 @@ func proxy(lconn net.Conn) {
 			}
 		}
 	}()
-	// kama kawaida : kagwe
+	// kama kawaida : kagwe // Just a song came accross when writing this...
 	// read the response from the remote connection and send to local connection
 	// rconn has the read method which makes it implement the io.Reader interface
 	go func() {
@@ -117,7 +104,8 @@ func proxy(lconn net.Conn) {
 			w, err := io.CopyN(lconn, rconn, 8*1<<10)
 			log.Println("received:", w)
 			if isNormalTerminationError(err) {
-				log.Println("receive: copy err : ", err)
+				// log.Println("receive: copy err : ", err)
+				log.Println("Could not recieve from remote server")
 				connDone <- 1
 				return
 			}
@@ -133,6 +121,7 @@ func proxy(lconn net.Conn) {
 	for i := 1; i <= 2; i++ {
 		<-connDone
 	}
+
 	rconn.Close()
 	log.Println("proxy number # ended")
 }
